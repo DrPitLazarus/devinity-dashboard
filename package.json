@@ -7,7 +7,13 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "axios": "^0.18.0",
+    "big.js": "^5.1.2",
+    "buefy": "^0.6.6",
+    "country-code-lookup": "^0.0.9",
+    "eventbusjs": "^0.2.0",
     "vue": "^2.5.16",
+    "vue-clipboard2": "^0.2.0",
     "vue-router": "^3.0.1"
   },
   "devDependencies": {

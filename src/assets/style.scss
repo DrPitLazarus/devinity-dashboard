@@ -1,0 +1,17 @@
+[v-cloak] {
+    display: none;
+}
+.is-paddingless-top {
+    padding-top: 0 !important;
+}
+hr.is-vertical {
+    height: 100%;
+    width: 2px;
+    margin: 0 auto;
+  }
+
+// Import Bulma's core
+@import "~bulma/sass/utilities/_all";
+// Import Bulma and Buefy styles
+@import "~bulma";
+@import "~buefy/src/scss/buefy";
