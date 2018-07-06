@@ -1,20 +1,14 @@
 <template>
   <div id="app">
+    <notifications classes="notification" :speed="200"/>
     <router-view/>
   </div>
 </template>
 
 <script>
-import { eventBus } from '@/main'
+import Quicksand from 'typeface-quicksand'
 
-export default {
-  mounted() {
-    eventBus.addEventListener('copy-success', function (e) {
-      console.log('event!!')
-      console.log(e)
-    })
-  }
-}
+export default {}
 </script>
 
 
