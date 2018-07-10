@@ -25,38 +25,44 @@
                         </div>
                     </div>
                 </div>
-                <article class="message is-warning" v-if="playerNotOnDevinity">
-                    <div class="message-header">
-                        <p>Player Not On Devinity</p>
-                    </div>
-                    <div class="message-body">
-                        The Steam ID does not match a player on Devinity. 
-                    </div>
-                </article>
-                <article class="message is-danger" v-if="queryInvalidFormat">
-                    <div class="message-header">
-                        <p>Query Invalid Format</p>
-                    </div>
-                    <div class="message-body">
-                        <p>The query entered does not match a format pattern. See below for accepted Steam ID formats.</p>
-                    </div>
-                </article>
-                <article class="message is-info" v-if="!steamId64IsValid || queryInvalidFormat">
-                    <div class="message-header">
-                        Enter one of the Steam ID formats below
-                    </div>
-                    <div class="message-body">
-                        <dl>
-                            <dt>Community ID</dt>
-                            <dd>76561198029786366</dd>
-                            <dt>Steam ID 32</dt>
-                            <dd>STEAM_0:0:34760319</dd>
-                            <dt>Steam Profile URL</dt>
-                            <dd>https://steamcommunity.com/profiles/76561198029786366</dd>
-                            <dd>https://steamcommunity.com/id/DrPitLazarus/</dd>
-                        </dl>
-                    </div>
-                </article>
+                <transition name="fade">
+                    <article class="message is-warning" v-if="playerNotOnDevinity">
+                        <div class="message-header">
+                            <p>Player Not On Devinity</p>
+                        </div>
+                        <div class="message-body">
+                            The Steam ID does not match a player on Devinity. 
+                        </div>
+                    </article>
+                </transition>
+                <transition name="fade">
+                    <article class="message is-danger" v-if="queryInvalidFormat">
+                        <div class="message-header">
+                            <p>Query Invalid Format</p>
+                        </div>
+                        <div class="message-body">
+                            <p>The query entered does not match a format pattern. See below for accepted Steam ID formats.</p>
+                        </div>
+                    </article>
+                </transition>
+                <transition name="fade">
+                    <article class="message is-info" v-if="!steamId64IsValid || queryInvalidFormat">
+                        <div class="message-header">
+                            Enter one of the Steam ID formats below
+                        </div>
+                        <div class="message-body">
+                            <dl>
+                                <dt>Community ID</dt>
+                                <dd>76561198029786366</dd>
+                                <dt>Steam ID 32</dt>
+                                <dd>STEAM_0:0:34760319</dd>
+                                <dt>Steam Profile URL</dt>
+                                <dd>https://steamcommunity.com/profiles/76561198029786366</dd>
+                                <dd>https://steamcommunity.com/id/DrPitLazarus/</dd>
+                            </dl>
+                        </div>
+                    </article>
+                </transition>
                 <router-view/>
             </div>
         </section>
@@ -71,9 +77,6 @@ const apiPath = "https://devinitydev.drpitlazar.us/api/player/"
 
 export default {
     metaInfo: {
-        meta: [
-            { vmid: 'description', name: 'description', content: `Search for a player's information on Devinity.`}
-        ],
         title: 'Player'
     },
     data() {
@@ -166,5 +169,12 @@ export default {
     }
     .player dt {
         font-weight: bold;
+    }
+
+    .fade-enter-active, .fade-leave-active {
+        transition: all .7s ease;
+    }
+    .fade-enter, .fade-leave-to {
+        opacity: 0;
     }
 </style>
