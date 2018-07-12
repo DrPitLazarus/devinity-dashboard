@@ -1,6 +1,6 @@
 <template>
     <div class="player-summary">
-        <section class="section is-paddingless-top" v-cloak>
+        <section class="is-paddingless-top" v-cloak>
             <div class="container" v-if="general.id">
                 <div class="columns">
                     <div class="column is-narrow">
@@ -12,12 +12,12 @@
                         <h2 class="title is-4">{{ playerName }}</h2>
                         <h3 class="subtitle is-6">{{ general.viprankname || "Player" }} from {{ countryName }}</h3>
                         <q>{{ description }}</q>
-                        <p>Joined {{ joined }} &bull; {{ general.totalplaytimef }} total playtime</p>
+                        <p>Joined {{ joined }} &bull; {{ general.totalplaytimef }} total playtime &bull; {{ formatNumber(general.tokens) }} tokens</p>
                     </div>
                     <div class="column is-5">
                         <div class="buttons">
-                            <button class="button" title="Click to copy SteamID." @click="copy(steam.steamid)">{{ steam.steamid }}</button>
-                            <button class="button" title="Click to copy SteamID32." @click="copy(steam.steamid32)">{{ steam.steamid32 }}</button>
+                            <button class="button" title="Click to copy Steam Community ID." @click="copy(steam.steamid)">{{ steam.steamid }}</button>
+                            <button class="button" title="Click to copy Steam ID 32." @click="copy(steam.steamid32)">{{ steam.steamid32 }}</button>
                             <a class="button" 
                             :href="`https://steamcommunity.com/profiles/${steam.steamid}`" title="Open Steam profile.">Steam</a>
                             <a class="button" v-if="general.forumid" 
@@ -26,8 +26,14 @@
                         <div class="notification is-danger" v-if="general.isbanned == 1">This player is currently banned from our servers.</div>
                     </div>
                 </div>
+                <player-tab-buttons 
+                    @change="handleTabChange" 
+                    :steam-id64="steam.steamid" 
+                    :player-name="Slugify('-' + playerName)" 
+                    :buttons="buttons"
+                    ref="tabButtons"/>
                 <hr>
-                <div class="columns">
+                <div class="columns" v-if="showSummary">
                     <div class="column">
                         <h2 class="title is-4">Flood</h2>
                         <div class="notification" v-if="!flood.lastplayed">This player has not played this gamemode on our servers.</div>
@@ -35,22 +41,14 @@
                         <gamemode-table v-if="flood.lastplayed" :data="[
                             ['Last Played', lastPlayed(flood)],
                             ['Cash', formatNumber(flood.cash)],
-                            ['Tokens', formatNumber(flood.tokens)],
                             ['Cash Earned', formatNumber(flood.cashearned)],
+                            ['Rounds Won', formatNumber(flood.roundswon)],
+                            ['Rounds Played', formatNumber(flood.rounds)],
                             ['Weapon Value', formatNumber(flood.wepvalue)],
                             ['Damage', formatNumber(flood.damage)],
                             ['Props Destroyed', formatNumber(flood.destroyed)],
                             ['Achievements', `${flood.achcount}/${flood.achcountmax}`]
                         ]"/>
-                        <br>
-                        <div v-if="flood.favoriteweapon" class="notification">
-                            <h4 class="title is-6">Favorite Weapon: {{ flood.favoriteweapon.name }}</h4>
-                            <p>
-                                Used {{ formatNumber(flood.favoriteweapon.usecount) }} times with an accuracy of 
-                                {{ flood.favoriteweapon.accuracy }}% ({{ formatNumber(flood.favoriteweapon.hits) }}
-                                hits/{{ formatNumber(flood.favoriteweapon.shots) }} shots).
-                            </p>
-                        </div>
                     </div>
                     <div class="column is-narrow">
                         <hr class="is-vertical">
@@ -62,6 +60,7 @@
                         <gamemode-table v-if="battleRoyale.lastplayed" :data="[
                             ['Last Played', lastPlayed(battleRoyale)],
                             ['Experience', formatNumber(battleRoyale.exp)],
+                            ['Coins', formatNumber(battleRoyale.coins)],
                             ['Rounds Won', formatNumber(battleRoyale.roundswon)],
                             ['Rounds Played', formatNumber(battleRoyale.rounds)],
                             ['Kills', formatNumber(battleRoyale.kills)],
@@ -71,6 +70,7 @@
                         ]"/>
                     </div>
                 </div>
+                <router-view/>
             </div>
         </section>
     </div>
@@ -79,25 +79,20 @@
 <script>
 import Axios from 'axios'
 import CountryCodes from 'country-code-lookup'
-import GamemodeTable from '@/components/GamemodeTable.vue'
+import Slugify from 'slugify'
+import GamemodeTable from '@/components/GamemodeTable'
+import PlayerTabButtons from '@/components/PlayerTabButtons'
 import unknownAvatar from '@/assets/unknown.png'
-
-const apiPath = "https://devinitydev.drpitlazar.us/api/player/"
+import { apiPlayerPath, formatNumber } from '@/config'
 
 export default {
     name: 'PlayerSummary',
     components: {
-        GamemodeTable
+        GamemodeTable,
+        PlayerTabButtons
     },
     metaInfo() {
         return {
-            meta: [
-                { 
-                    vmid: 'description', 
-                    name: 'description', 
-                    content: `${this.playerName} is a ${this.general.viprankname} from ${this.countryName} on Devinity.
-                    Community ID: ${this.general.steamid}. Steam ID 32: ${this.general.steamid32}.`}
-            ],
             title: `Player: ${this.playerName}`
         }
     },
@@ -106,20 +101,36 @@ export default {
             general: {},
             flood: {},
             battleRoyale: {},
-            steam: {}
+            steam: {},
+            showSummary: true,
+            buttons: [
+                {
+                    title: 'Summary',
+                    to: 'player-summary'
+                },
+                {
+                    title: 'Flood',
+                    to: 'player-tab-flood'
+                },
+                {
+                    title: 'Battle Royale',
+                    to: 'player-tab-battleroyale'
+                }
+            ]
         }
     },
     methods: {
+        formatNumber,
+        Slugify,
+        handleTabChange(e) {
+            this.showSummary = e === 0 ? true : false
+        },
         copy(text) {
             this.$copyText(text)
             this.$notify({
                 type: 'is-info',
                 text: `Copied '${text}'.`
                 })
-        },
-        formatNumber(num) {
-            if (!num) return
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
         },
         fetchPlayerData() {
             let steamId = this.$route.params.steamId64
@@ -128,8 +139,8 @@ export default {
                 text: 'Fetching player data...'
                 })
             Axios.all([
-                Axios.get(apiPath + steamId),
-                Axios.get(apiPath + steamId + '/steam')
+                Axios.get(apiPlayerPath + steamId),
+                Axios.get(apiPlayerPath + steamId + '/steam')
             ]).then(Axios.spread((player, steam) => {
                 this.$notify({clear: true})
                 player = player.data, steam = steam.data
@@ -137,22 +148,21 @@ export default {
                 this.flood = player.flood
                 this.battleRoyale = player.battleroyale
                 this.steam = steam
-                if (player.general.id) {
-                    this.getFloodExtraData(steamId)
-                }
+                this.updateParamPlayerName()
             }))            
-        },
-        getFloodExtraData(steamId) {
-            Axios.all([
-                Axios.get(apiPath + steamId + '/floodFavoriteWeapon')
-            ]).then(Axios.spread(floodFavWep => {
-                this.$set(this.flood, 'favoriteweapon', floodFavWep.data)
-            }))
         },
         lastPlayed(gamemode) {
             return gamemode['lastplayed'] 
                 ? gamemode['lastplayed'] + ` (${gamemode['lastplayedrel']} ago)`
                 : 'Never'
+        },
+        updateParamPlayerName() {
+            if (!this.$route.params.playerName || Slugify('-' + this.$route.params.playerName) != Slugify('-' + this.playerName)) {
+                this.$router.replace({ name: this.$route.name, params: {
+                    steamId64: this.$route.params.steamId64,
+                    playerName: Slugify('-' + this.playerName)
+                }})
+            }
         }
     },
     computed: {
@@ -188,6 +198,12 @@ export default {
     watch: {
         '$route.params.steamId64'() {
             this.fetchPlayerData()
+        },
+        '$route.name'() {
+            this.$refs.tabButtons.updateActiveButtonFromRoute()
+        },
+        '$route.params.playerName'() {
+            this.updateParamPlayerName()
         }
     }
 }
