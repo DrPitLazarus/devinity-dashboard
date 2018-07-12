@@ -8,12 +8,18 @@ hr.is-vertical {
     height: 100%;
     width: 2px;
     margin: 0 auto;
-  }
+}
 
 $family-sans-serif: Quicksand, Segoe UI, sans-serif;
+
+
+
+
 
 // Import Bulma's core
 @import "~bulma/sass/utilities/_all";
 // Import Bulma and Buefy styles
 @import "~bulma";
 @import "~buefy/src/scss/buefy";
+
+@import "~@mdi/font/css/materialdesignicons.min.css";
