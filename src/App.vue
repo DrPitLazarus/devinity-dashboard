@@ -10,9 +10,6 @@ import Quicksand from 'typeface-quicksand'
 
 export default {
   metaInfo: {
-    meta: [
-     { vmid: 'description', name: 'description', content: 'View additional information related to Devinity.'} 
-    ],
     title: 'Home',
     titleTemplate: '%s - Devinity Dashboard'
   }
