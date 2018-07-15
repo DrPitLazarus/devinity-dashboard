@@ -25,8 +25,16 @@ export default {
                     to: 'player-tab-battleroyale-achievements'
                 },
                 {
+                    title: 'Deaths',
+                    to: 'player-tab-battleroyale-deaths'
+                },
+                {
                     title: 'Items',
                     to: 'player-tab-battleroyale-items'
+                },
+                {
+                    title: 'Kills',
+                    to: 'player-tab-battleroyale-kills'
                 }
             ]
         }

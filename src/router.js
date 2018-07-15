@@ -12,7 +12,9 @@ import PlayerTabFloodFavProps from './views/Player/Flood/FavoriteProps'
 import PlayerTabFloodAchievements from './views/Player/Flood/Achievements'
 import PlayerTabBattleRoyale from './views/Player/PlayerTabBattleRoyale'
 import PlayerTabBattleRoyaleAchievements from './views/Player/BattleRoyale/Achievements'
+import PlayerTabBattleRoyaleDeaths from './views/Player/BattleRoyale/Deaths'
 import PlayerTabBattleRoyaleItems from './views/Player/BattleRoyale/Items'
+import PlayerTabBattleRoyaleKills from './views/Player/BattleRoyale/Kills'
 
 Vue.use(Router)
 Vue.use(VueMeta)
@@ -78,9 +80,19 @@ export default new Router({
                   component: PlayerTabBattleRoyaleAchievements
                 },
                 {
+                  path: 'deaths',
+                  name: 'player-tab-battleroyale-deaths',
+                  component: PlayerTabBattleRoyaleDeaths
+                },
+                {
                   path: 'items',
                   name: 'player-tab-battleroyale-items',
                   component: PlayerTabBattleRoyaleItems
+                },
+                {
+                  path: 'kills',
+                  name: 'player-tab-battleroyale-kills',
+                  component: PlayerTabBattleRoyaleKills
                 }
               ]
             }
