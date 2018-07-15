@@ -70,7 +70,7 @@
                         ]"/>
                     </div>
                 </div>
-                <router-view/>
+                <router-view class="spacer"/>
             </div>
         </section>
     </div>
@@ -127,22 +127,16 @@ export default {
         },
         copy(text) {
             this.$copyText(text)
-            this.$notify({
-                type: 'is-info',
-                text: `Copied '${text}'.`
-                })
+            this.$toast.open({
+                message: `Copied '${text}'.`
+            })
         },
         fetchPlayerData() {
             let steamId = this.$route.params.steamId64
-            this.$notify({
-                duration: -1,
-                text: 'Fetching player data...'
-                })
             Axios.all([
                 Axios.get(apiPlayerPath + steamId),
                 Axios.get(apiPlayerPath + steamId + '/steam')
             ]).then(Axios.spread((player, steam) => {
-                this.$notify({clear: true})
                 player = player.data, steam = steam.data
                 this.general = player.general
                 this.flood = player.flood
@@ -212,5 +206,8 @@ export default {
 <style scoped>
 .player-summary .steam-avatar {
     border-radius: 15%;
+}
+.spacer {
+    min-height: 94vh;
 }
 </style>

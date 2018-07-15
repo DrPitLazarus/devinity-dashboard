@@ -2,8 +2,18 @@
     <div class="favorite-weapons">
         <h2 class="title is-4">Favorite Weapons</h2>
         <p class="subtitle">Data gathered from the last 1,000 rounds this player played on.</p>
+        <div v-show="!isLoading && data.length === 0" class="message">
+            <div class="message-body">
+                There is nothing here. :(
+            </div>
+        </div>
+        <div v-show="isLoading" class="notification">
+            <p>Loading...</p>
+            <b-loading :active="isLoading" :is-full-page="false"/>
+        </div>
         <b-table
-            :data="favWeapons"
+            v-if="data.length"
+            :data="data"
             :default-sort="['usecount', 'desc']"
             default-sort-direction="desc"
             :loading="isLoading"
@@ -37,7 +47,7 @@ export default {
     name: 'FavoriteWeapons',
     data() {
         return {
-            favWeapons: [],
+            data: [],
             isLoading: false
         }
     },
@@ -47,12 +57,14 @@ export default {
             this.isLoading = true
             this.$http.get(apiPlayerPath + this.$route.params.steamId64 + '/floodFavoriteWeapons')
             .then(res => {
-                this.favWeapons = res.body
+                this.data = res.data
                 this.isLoading = false
             })
             .catch(err => {
-                this.$notify({
-                    text: `Could not get floodFavoriteWeapons. (Status ${err.status})`,
+                this.$toast.open({
+                    duration: 7000,
+                    message: err.message,
+                    position: 'is-bottom',
                     type: 'is-danger'
                 })
                 this.isLoading = false

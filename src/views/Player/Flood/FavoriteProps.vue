@@ -2,8 +2,18 @@
     <div class="favorite-props">
         <h2 class="title is-4">Favorite Props</h2>
         <p class="subtitle">Data gathered from the last 1,000 rounds this player played on.</p>
+        <div v-show="!isLoading && data.length === 0" class="message">
+            <div class="message-body">
+                There is nothing here. :(
+            </div>
+        </div>
+        <div v-show="isLoading" class="notification">
+            <p>Loading...</p>
+            <b-loading :active="isLoading" :is-full-page="false"/>
+        </div>
         <b-table
-            :data="favProps"
+            v-if="data.length"
+            :data="data"
             :default-sort="['usecount', 'desc']"
             :loading="isLoading"
             hoverable>
@@ -27,7 +37,7 @@ export default {
     name: 'FavoriteProps',
     data() {
         return {
-            favProps: [],
+            data: [],
             isLoading: false
         }
     },
@@ -37,13 +47,14 @@ export default {
             this.isLoading = true
             this.$http.get(apiPlayerPath + this.$route.params.steamId64 + '/floodFavoriteProps')
             .then(res => {
-                this.favProps = res.body
+                this.data = res.data
                 this.isLoading = false
             })
             .catch(err => {
-                console.log(err)
-                this.$notify({
-                    text: `Could not get floodFavoriteProps. (Status ${err.status})`,
+                this.$toast.open({
+                    duration: 7000,
+                    message: err.message,
+                    position: 'is-bottom',
                     type: 'is-danger'
                 })
                 this.isLoading = false

@@ -1,8 +1,18 @@
 <template>
     <div class="owned-weapons">
         <h2 class="title is-4">Owned Weapons</h2>
+        <div v-show="!isLoading && data.length === 0" class="message">
+            <div class="message-body">
+                There is nothing here. :(
+            </div>
+        </div>
+        <div v-show="isLoading" class="notification">
+            <p>Loading...</p>
+            <b-loading :active="isLoading" :is-full-page="false"/>
+        </div>
         <b-table
-            :data="ownedWeapons"
+            v-if="data.length"
+            :data="data"
             :default-sort="['name', 'asc']"
             :loading="isLoading"
             hoverable>
@@ -29,7 +39,7 @@ export default {
     name: 'OwnedWeapons',
     data() {
         return {
-            ownedWeapons: [],
+            data: [],
             isLoading: false
         }
     },
@@ -43,13 +53,14 @@ export default {
             this.isLoading = true
             this.$http.get(apiPlayerPath + this.$route.params.steamId64 + '/floodOwnedWeapons')
             .then(res => {
-                this.ownedWeapons = res.body
+                this.data = res.data
                 this.isLoading = false
             })
             .catch(err => {
-                console.log(err)
-                this.$notify({
-                    text: `Could not get floodOwnedWeapons. (Status ${err.status})`,
+                this.$toast.open({
+                    duration: 7000,
+                    message: err.message,
+                    position: 'is-bottom',
                     type: 'is-danger'
                 })
                 this.isLoading = false

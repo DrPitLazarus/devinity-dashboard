@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <notifications classes="notification" :speed="200"/>
     <router-view/>
   </div>
 </template>
