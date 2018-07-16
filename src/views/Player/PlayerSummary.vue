@@ -24,6 +24,11 @@
                             :href="`https://devinity.org/members/${general.forumid}`" title="Open Devinity forum profile.">Forum</a>
                         </div>
                         <div class="notification is-danger" v-if="general.isbanned == 1">This player is currently banned from our servers.</div>
+                        <div class="notification is-danger" v-if="isSteamBanned">
+                            <p v-if="steam.bans.NumberOfVACBans > 0">{{ steam.bans.NumberOfVACBans }} VAC ban(s).</p>
+                            <p v-if="steam.bans.NumberOfGameBans > 0">{{ steam.bans.NumberOfGameBans }} game ban(s).</p>
+                            <p>{{ steam.bans.DaysSinceLastBan }} day(s) since last ban.</p>
+                        </div>
                     </div>
                 </div>
                 <player-tab-buttons 
@@ -77,7 +82,6 @@
 </template>
 
 <script>
-import Axios from 'axios'
 import CountryCodes from 'country-code-lookup'
 import Slugify from 'slugify'
 import GamemodeTable from '@/components/GamemodeTable'
@@ -133,15 +137,17 @@ export default {
         },
         fetchPlayerData() {
             let steamId = this.$route.params.steamId64
-            Axios.all([
-                Axios.get(apiPlayerPath + steamId),
-                Axios.get(apiPlayerPath + steamId + '/steam')
-            ]).then(Axios.spread((player, steam) => {
+            this.$http.all([
+                this.$http.get(apiPlayerPath + steamId),
+                this.$http.get(apiPlayerPath + steamId + '/steam'),
+                this.$http.get(apiPlayerPath + steamId + '/steamBans')
+            ]).then(this.$http.spread((player, steam, steamBans) => {
                 player = player.data, steam = steam.data
                 this.general = player.general
                 this.flood = player.flood
                 this.battleRoyale = player.battleroyale
                 this.steam = steam
+                this.$set(this.steam, 'bans', steamBans.data)
                 this.updateParamPlayerName()
             }))            
         },
@@ -184,6 +190,9 @@ export default {
                 return unknownAvatar
             }
             return this.steam.avatarfull || unknownAvatar
+        },
+        isSteamBanned() {
+            return this.steam.bans.NumberOfVACBans > 0 || this.steam.bans.NumberOfGameBans > 0
         }
     },
     mounted() {
