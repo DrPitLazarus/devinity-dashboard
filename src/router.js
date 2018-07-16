@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import VueMeta from 'vue-meta'
 import Home from './views/Home.vue'
-import About from './views/About.vue'
 import Player from './views/Player.vue'
 import PlayerSummary from './views/Player/PlayerSummary'
 import PlayerTabFlood from './views/Player/PlayerTabFlood'
@@ -26,11 +25,6 @@ export default new Router({
       path: '/',
       name: 'home',
       component: Home
-    },
-    {
-      path: '/about',
-      name: 'about',
-      component: About
     },
     {
       path: '/player',
