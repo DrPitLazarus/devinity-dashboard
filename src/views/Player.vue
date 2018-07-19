@@ -70,10 +70,8 @@
 </template>
 
 <script>
-import Axios from 'axios'
 import Big from 'big.js'
-
-const apiPath = "https://devinitydev.drpitlazar.us/api/player/"
+import { apiBasePath, apiPlayerPath } from '@/config'
 
 export default {
     metaInfo: {
@@ -91,19 +89,19 @@ export default {
     },
     methods: {
         ifPlayerIsOnDevinity(steamId64, cb) {
-            Axios.get(apiPath + steamId64 + '/isPlayer')
+            this.$http.get(apiPlayerPath + steamId64 + '/isPlayer')
                 .then(res => {
                     cb(res)
                 })
         },
-        handleSearchStart() {
+        async handleSearchStart() {
             this.resetQueryValidity()
             let query = this.searchQuery
             if (!this.isValidQuery(query)) {
                 this.queryInvalidFormat = true
                 return
             }
-            let steamId64 = this.convertSteamIdTo64(query)
+            let steamId64 = await this.convertSteamIdTo64(query)
             this.ifPlayerIsOnDevinity(steamId64, res => {
                 if (res.data.response) {
                         this.$router.push({
@@ -147,17 +145,31 @@ export default {
                 || this.isSteamProfileUrl(query)
                 || this.isSteamProfileIdUrl(query)
         },
-        convertSteamIdTo64(steamId) {
+        async convertSteamIdTo64(steamId) {
             if (this.isCommunityId(steamId)) {
                 return steamId
             } else if (this.isSteamId32(steamId)) {
                 return this.toSteamId64(steamId)
+            } else if (this.isSteamProfileUrl(steamId)) {
+                let result = steamId.match(/\d{17}/)[0]
+                return result
+            } else if (this.isSteamProfileIdUrl(steamId)) {
+                let result = steamId.match(/([0-9a-zA-Z_-]{2,32})(?:\/)$/)[1]
+                let res = await this.$http(apiBasePath + 'steam/vanity/' + result)
+                return res.data.steamid
             }
         }
     },
     computed: {
         steamId64IsValid() {
             return this.$route.params.steamId64 || this.searchSubmitted
+        }
+    },
+    created() {
+        if (this.$route.params.steamId64) {
+            this.ifPlayerIsOnDevinity(this.$route.params.steamId64, r => {
+                if (!r.data.response) this.playerNotOnDevinity = true
+            })
         }
     }
 }
