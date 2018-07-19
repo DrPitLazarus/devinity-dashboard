@@ -1,7 +1,7 @@
 <template>
     <div class="favorite-props">
         <h2 class="title is-4">Favorite Props</h2>
-        <p class="subtitle">Data gathered from the last 1,000 rounds this player played on.</p>
+        <p class="subtitle">Data gathered from the last 100 rounds this player played on.</p>
         <div v-show="!isLoading && data.length === 0" class="message">
             <div class="message-body">
                 There is nothing here. :(
