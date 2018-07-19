@@ -179,8 +179,9 @@ export default {
                 : `on ${this.general.joined.substr(0, 10)}`
         },
         countryName() {
-            if (!this.general.nationality && !this.steam.loccountrycode) return "Somewhere"
-            return CountryCodes.byIso(this.general.nationality || this.steam.loccountrycode).country || (this.general.nationality || this.steam.loccountrycode)
+            if (!this.general.nationality) return "Somewhere"
+            if (CountryCodes.byIso(this.general.nationality)) return CountryCodes.byIso(this.general.nationality).country
+            if (CountryCodes.byFips(this.general.nationality)) return (CountryCodes.byFips(this.general.nationality)).country
         },
         playerName() {
             return this.general.nick || this.steam.personaname || ""
