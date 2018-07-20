@@ -17,6 +17,13 @@
                             </div>
                             <div class="control">
                                 <a 
+                                    @click="searchModalActive = true" 
+                                    class="button is-rounded">
+                                    From List...
+                                </a>
+                            </div>
+                            <div class="control">
+                                <a 
                                     @click="handleSearchStart()" 
                                     class="button is-info is-rounded">
                                     Search
@@ -25,6 +32,7 @@
                         </div>
                     </div>
                 </div>
+                <player-search-modal :active="searchModalActive" @steamid="handleSearchFromList" @close="searchModalActive = false"/>
                 <transition name="fade">
                     <article class="message is-warning" v-if="playerNotOnDevinity">
                         <div class="message-header">
@@ -72,10 +80,14 @@
 <script>
 import Big from 'big.js'
 import { apiBasePath, apiPlayerPath } from '@/config'
+import PlayerSearchModal from '@/components/PlayerSearchModal'
 
 export default {
     metaInfo: {
         title: 'Player'
+    },
+    components: {
+        PlayerSearchModal
     },
     data() {
         return {
@@ -84,7 +96,8 @@ export default {
             searchQuery: null,
             queryInvalidFormat: false,
             playerNotOnDevinity: false,
-            searchSubmitted: false
+            searchSubmitted: false,
+            searchModalActive: false
         }
     },
     methods: {
@@ -158,6 +171,11 @@ export default {
                 let res = await this.$http(apiBasePath + 'steam/vanity/' + result)
                 return res.data.steamid
             }
+        },
+        handleSearchFromList(steamid) {
+            this.searchModalActive = false
+            this.searchQuery = steamid
+            this.handleSearchStart()
         }
     },
     computed: {
