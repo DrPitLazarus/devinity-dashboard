@@ -14,7 +14,7 @@
             v-if="data.length"
             :data="data"
             :default-sort="['name', 'asc']"
-            :loading="isLoading"
+            :mobile-cards="false"
             hoverable>
 
             <template slot-scope="props">

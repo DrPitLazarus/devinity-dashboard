@@ -16,7 +16,7 @@
             :data="data"
             :default-sort="['usecount', 'desc']"
             default-sort-direction="desc"
-            :loading="isLoading"
+            :mobile-cards="false"
             hoverable>
 
             <template slot-scope="props">
