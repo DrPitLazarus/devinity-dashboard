@@ -23,11 +23,15 @@
                             <a class="button" v-if="general.forumid" 
                             :href="`https://devinity.org/members/${general.forumid}`" title="Open Devinity forum profile.">Forum</a>
                         </div>
-                        <div class="notification is-danger" v-if="general.isbanned == 1">This player is currently banned from our servers.</div>
-                        <div class="notification is-danger" v-if="isSteamBanned">
-                            <p v-if="steam.bans.NumberOfVACBans > 0">{{ steam.bans.NumberOfVACBans }} VAC ban(s).</p>
-                            <p v-if="steam.bans.NumberOfGameBans > 0">{{ steam.bans.NumberOfGameBans }} game ban(s).</p>
-                            <p>{{ steam.bans.DaysSinceLastBan }} day(s) since last ban.</p>
+                        <div class="notification is-danger" v-if="currentBan">
+                            <p>This player is currently banned from our servers.</p>
+                            <p><q>{{ currentBan.reason }}</q> by {{ currentBan.admin }}. {{ currentBanLength }}.</p>
+                        </div>
+                        <div class="notification" v-if="isSteamBanned">
+                            <p>Steam ban info:</p>
+                            <span v-if="steam.bans.NumberOfVACBans > 0">{{ steam.bans.NumberOfVACBans }} VAC ban(s). </span>
+                            <span v-if="steam.bans.NumberOfGameBans > 0">{{ steam.bans.NumberOfGameBans }} game ban(s). </span>
+                            <span>{{ steam.bans.DaysSinceLastBan }} day(s) since last ban. </span>
                         </div>
                     </div>
                 </div>
@@ -107,6 +111,7 @@ export default {
             battleRoyale: {},
             steam: {},
             showSummary: true,
+            currentBan: false,
             buttons: [
                 {
                     title: 'Summary',
@@ -138,16 +143,18 @@ export default {
         fetchPlayerData() {
             let steamId = this.$route.params.steamId64
             this.$http.all([
-                this.$http.get(apiPlayerPath + steamId),
-                this.$http.get(apiPlayerPath + steamId + '/steam'),
-                this.$http.get(apiPlayerPath + steamId + '/steamBans')
-            ]).then(this.$http.spread((player, steam, steamBans) => {
+                this.$http(apiPlayerPath + steamId),
+                this.$http(apiPlayerPath + steamId + '/steam'),
+                this.$http(apiPlayerPath + steamId + '/steamBans'),
+                this.$http(apiPlayerPath + steamId + '/currentBan')
+            ]).then(this.$http.spread((player, steam, steamBans, currentBan) => {
                 player = player.data, steam = steam.data
                 this.general = player.general
                 this.flood = player.flood
                 this.battleRoyale = player.battleroyale
                 this.steam = steam
                 this.$set(this.steam, 'bans', steamBans.data)
+                this.currentBan = currentBan.data
                 this.updateParamPlayerName()
             }))            
         },
@@ -166,11 +173,11 @@ export default {
         }
     },
     computed: {
+        currentBanLength() {
+            return this.currentBan.unban == 0 ? 'Banned permanently' : this.currentBan.timeleft + ' remaining'
+        },
         description() {
             return this.general.description || 'No description set.'
-        },
-        isBanned() {
-            return this.general.isbanned == 1 ? 'Yes' : 'No'
         },
         joined() {
             if (!this.general.joined) return false
