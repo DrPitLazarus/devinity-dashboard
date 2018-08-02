@@ -35,12 +35,12 @@
                         </div>
                     </div>
                 </div>
-                <player-tab-buttons 
-                    @change="handleTabChange" 
-                    :steam-id64="steam.steamid" 
-                    :player-name="Slugify('-' + playerName)" 
-                    :buttons="buttons"
-                    ref="tabButtons"/>
+                <router-tabs
+                :tabs="routerTabs"
+                :path-level="2"
+                :default="true"
+                @change="showSummary = $event === 0"
+                />
                 <hr>
                 <div class="columns" v-if="showSummary">
                     <div class="column">
@@ -89,7 +89,7 @@
 import CountryCodes from 'country-code-lookup'
 import Slugify from 'slugify'
 import GamemodeTable from '@/components/GamemodeTable'
-import PlayerTabButtons from '@/components/PlayerTabButtons'
+import RouterTabs from '@/components/RouterTabs'
 import unknownAvatar from '@/assets/unknown.png'
 import { apiPlayerPath, formatNumber } from '@/config'
 
@@ -97,7 +97,7 @@ export default {
     name: 'PlayerSummary',
     components: {
         GamemodeTable,
-        PlayerTabButtons
+        RouterTabs
     },
     metaInfo() {
         return {
@@ -112,18 +112,24 @@ export default {
             steam: {},
             showSummary: true,
             currentBan: false,
-            buttons: [
+            routerTabs: [
                 {
-                    title: 'Summary',
-                    to: 'player-summary'
+                    text: 'Summary',
+                    to: {
+                        name: 'player-summary'
+                    }
                 },
                 {
-                    title: 'Flood',
-                    to: 'player-tab-flood'
+                    text: 'Flood',
+                    to: {
+                        name: 'player-tab-flood'
+                    }
                 },
                 {
-                    title: 'Battle Royale',
-                    to: 'player-tab-battleroyale'
+                    text: 'Battle Royale',
+                    to: {
+                        name: 'player-tab-battleroyale'
+                    }
                 }
             ]
         }
@@ -131,9 +137,6 @@ export default {
     methods: {
         formatNumber,
         Slugify,
-        handleTabChange(e) {
-            this.showSummary = e === 0 ? true : false
-        },
         copy(text) {
             this.$copyText(text)
             this.$toast.open({
@@ -169,7 +172,14 @@ export default {
                     steamId64: this.$route.params.steamId64,
                     playerName: Slugify('-' + this.playerName)
                 }})
+                this.appendParamsToRouterTabs()
             }
+        },
+        appendParamsToRouterTabs() {
+            this.routerTabs = this.routerTabs.map(tab => {
+                tab.to.params = this.$route.params
+                return tab
+            })
         }
     },
     computed: {
@@ -203,15 +213,13 @@ export default {
             return this.steam.bans.NumberOfVACBans > 0 || this.steam.bans.NumberOfGameBans > 0
         }
     },
-    mounted() {
+    created() {
+        this.appendParamsToRouterTabs()
         this.fetchPlayerData()
     },
     watch: {
         '$route.params.steamId64'() {
             this.fetchPlayerData()
-        },
-        '$route.name'() {
-            this.$refs.tabButtons.updateActiveButtonFromRoute()
         },
         '$route.params.playerName'() {
             this.updateParamPlayerName()

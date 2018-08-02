@@ -1,43 +1,57 @@
 <template>
-    <div class="player-tab-flood">
-        <player-tab-buttons 
-            :steam-id64="$route.params.steamId64"
-            :player-name="$route.params.playerName"
-            :buttons="buttons"/>
+    <div class="player-tab-battleroyale">
+        <router-tabs
+            :tabs="routerTabs"
+            :path-level="3"
+            />
         <br>
         <router-view class="spacer"/>
     </div>
 </template>
 
 <script>
-import PlayerTabButtons from '@/components/PlayerTabButtons'
+import RouterTabs from '@/components/RouterTabs'
 
 export default {
     name: 'PlayerTabBattleRoyale',
     components: {
-        PlayerTabButtons
+        RouterTabs
     },
     data() {
         return {
-            buttons: [
+            routerTabs: [
                 {
-                    title: 'Achievements',
-                    to: 'player-tab-battleroyale-achievements'
+                    text: 'Achievements',
+                    to: {
+                        name: 'player-tab-battleroyale-achievements'
+                    }
                 },
                 {
-                    title: 'Deaths',
-                    to: 'player-tab-battleroyale-deaths'
+                    text: 'Deaths',
+                    to: {
+                        name: 'player-tab-battleroyale-deaths'
+                    }
                 },
                 {
-                    title: 'Items',
-                    to: 'player-tab-battleroyale-items'
+                    text: 'Items',
+                    to: {
+                        name: 'player-tab-battleroyale-items'
+                    }
                 },
                 {
-                    title: 'Kills',
-                    to: 'player-tab-battleroyale-kills'
+                    text: 'Kills',
+                    to: {
+                        name: 'player-tab-battleroyale-kills'
+                    }
                 }
             ]
         }
+    },
+    created() {
+        this.routerTabs = this.routerTabs.map(tab => {
+            tab.to.params = this.$route.params
+            return tab
+        })
     }
 }
 </script>

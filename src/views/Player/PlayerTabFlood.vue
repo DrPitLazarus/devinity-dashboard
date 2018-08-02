@@ -1,43 +1,57 @@
 <template>
     <div class="player-tab-flood">
-        <player-tab-buttons 
-            :steam-id64="$route.params.steamId64"
-            :player-name="$route.params.playerName"
-            :buttons="buttons"/>
+        <router-tabs
+            :tabs="routerTabs"
+            :path-level="3"
+            />
         <br>
         <router-view class="spacer"/>
     </div>
 </template>
 
 <script>
-import PlayerTabButtons from '@/components/PlayerTabButtons'
+import RouterTabs from '@/components/RouterTabs'
 
 export default {
     name: 'PlayerTabFlood',
     components: {
-        PlayerTabButtons
+        RouterTabs
     },
     data() {
         return {
-            buttons: [
+            routerTabs: [
                 {
-                    title: 'Achievements',
-                    to: 'player-tab-flood-achievements'
+                    text: 'Achievements',
+                    to: {
+                        name: 'player-tab-flood-achievements'
+                    }
                 },
                 {
-                    title: 'Fav. Props',
-                    to: 'player-tab-flood-favprops'
+                    text: 'Fav. Props',
+                    to: {
+                        name: 'player-tab-flood-favprops'
+                    }
                 },
                 {
-                    title: 'Fav. Weapons',
-                    to: 'player-tab-flood-favweapons'
+                    text: 'Fav. Weapons',
+                    to: {
+                        name: 'player-tab-flood-favweapons'
+                    }
                 },
                 {
-                    title: 'Owned Weapons',
-                    to: 'player-tab-flood-ownedweapons'
+                    text: 'Owned Weapons',
+                    to: {
+                        name: 'player-tab-flood-ownedweapons'
+                    }
                 }
             ]
         }
+    },
+    created() {
+        this.routerTabs = this.routerTabs.map(tab => {
+            tab.to.params = this.$route.params
+            return tab
+        })
     }
 }
 </script>
