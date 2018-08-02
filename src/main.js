@@ -5,11 +5,14 @@ import Axios from 'axios'
 import VueAxios from 'vue-axios'
 import App from './App.vue'
 import router from './router'
+import LoadingBox from './components/LoadingBox'
 
 
 Vue.use(Buefy)
 Vue.use(VueClipboard2)
 Vue.use(VueAxios, Axios)
+
+Vue.component('loading-box', LoadingBox)
 
 Vue.config.productionTip = false
 
