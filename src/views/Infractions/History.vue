@@ -2,7 +2,33 @@
     <div class="active-bans">
         <hr>
         <h2 class="title is-4">History</h2>
+
+        <label class="label">Fetch by Perpetrator's Steam ID:</label>
+        <b-field addons>
+            <b-input @keypress.enter.native="handleFetchBySteamID()" v-model.trim="fetchBy.steamid" 
+                expanded rounded placeholder="SteamID/Community ID/URL" spellcheck="off"/>
+            <p class="control">
+                <button @click="handleFetchBySteamID()" class="button is-rounded is-info">Fetch</button>
+            </p>
+        </b-field>
+        <b-field label="Fetch by Admin:">
+            <b-select placeholder="Select an Admin..." @input="handleFetchByAdmin($event)">
+                <optgroup label="Current Staff">
+                    <template v-for="admin of adminDropdown">
+                        <option v-if="admin.rank > 4" :key="admin.steamid" :value="admin.steamid">{{ admin.nick }}</option>
+                    </template>
+                </optgroup>
+                <optgroup label="Former Staff">
+                    <template v-for="admin of adminDropdown">
+                        <option v-if="admin.rank < 5" :key="admin.steamid" :value="admin.steamid">{{ admin.nick }}</option>
+                    </template>
+                </optgroup>
+            </b-select>
+        </b-field>
+
+
         <loading-box :active="isLoading"/>
+
 
         <b-table
             v-if="infractions.length"
@@ -114,6 +140,8 @@
 <script>
 import { apiDevinityPath, steamId32toSteamId64 } from '@/config'
 
+const apiInfractionsPath = apiDevinityPath + 'infractions'
+
 export default {
     data() {
         return {
@@ -129,6 +157,10 @@ export default {
                 server: 0,
                 type: 0,
                 unban: 0
+            },
+            adminDropdown: [],
+            fetchBy: {
+                steamid: null
             }
         }
     },
@@ -136,7 +168,26 @@ export default {
         steamId32toSteamId64,
         async getInfractions() {
             this.isLoading = true
-            let r = await this.$http(apiDevinityPath + 'infractions')
+            let r = await this.$http(apiInfractionsPath)
+            this.infractions = r.data
+            this.isLoading = false
+        },
+        async getAdminList() {
+            let r = await this.$http(apiInfractionsPath + '/getAllStaff')
+            this.adminDropdown = r.data
+        },
+        async handleFetchByAdmin(e) {
+            this.isLoading = true
+            this.infractions = []
+            let r = await this.$http(apiInfractionsPath + '/byAdmin/' + e)
+            this.infractions = r.data
+            this.isLoading = false
+        },
+        async handleFetchBySteamID() {
+            this.isLoading = true
+            this.infractions = []
+            let r = await this.$http(apiInfractionsPath + '/bySteamId/' + this.fetchBy.steamid)
+            this.fetchBy.steamid = null
             this.infractions = r.data
             this.isLoading = false
         },
@@ -196,6 +247,7 @@ export default {
     },
     created() {
         this.getInfractions()
+        this.getAdminList()
     }
 
 }
