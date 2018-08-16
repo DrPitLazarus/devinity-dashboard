@@ -27,10 +27,13 @@
                             <p>This player is currently banned from our servers.</p>
                             <p>
                                 <q>{{ currentBan.reason }}</q> by 
-                                <router-link 
-                                    :to="{ name: 'player-summary', params: { steamId64: steamId32toSteamId64(getAdminSteamId(currentBan.admin)) } }"
-                                    title="View player info.">
-                                    {{ formatAdminName(currentBan.admin) }}</router-link>. 
+                                <template v-if="isAdminPlayer(currentBan.admin)">
+                                    <router-link 
+                                        :to="{ name: 'player-summary', params: { steamId64: steamId32toSteamId64(getAdminSteamId(currentBan.admin)) } }"
+                                        title="View player info.">
+                                        {{ formatAdminName(currentBan.admin) }}</router-link>. 
+                                </template>
+                                <template v-else>{{ currentBan.admin }}.</template>
                                 {{ currentBanLength }}.
                             </p>
                         </div>
@@ -194,6 +197,9 @@ export default {
         },
         formatAdminName(admin) {
             return admin.substring(0, admin.indexOf('(STEAM_0:'))
+        },
+        isAdminPlayer(admin) {
+            return !['(Console)', 'Anti-Cheat'].includes(admin)
         }
     },
     computed: {
