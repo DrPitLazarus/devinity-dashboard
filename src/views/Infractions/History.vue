@@ -257,6 +257,9 @@ export default {
             this.adminDropdown = r.data
         },
         async handleFetchByAdmin() {
+            let fetchBy = `admin,${this.fetchBy.admin}`
+            if (this.fetchBy.adminFromTo === 'to') fetchBy += `,to`
+            this.setFetchByToQuery(fetchBy)
             this.isLoading = true
             this.infractions = []
             let endpoint = this.fetchBy.adminFromTo === 'from' ? '/byAdmin/' : '/bySteamId/'
@@ -265,6 +268,7 @@ export default {
             this.isLoading = false
         },
         async handleFetchBySteamID() {
+            this.setFetchByToQuery(`steamid,${this.fetchBy.steamid}`)
             this.isLoading = true
             this.infractions = []
             let r = await this.$http(apiInfractionsPath + '/bySteamId/' + this.fetchBy.steamid)
@@ -272,6 +276,7 @@ export default {
             this.isLoading = false
         },
         async handleFetchByDate() {
+            this.setFetchByToQuery(`date,${this.fetchBy.date}`)
             this.isLoading = true
             this.infractions = []
             let r = await this.$http(apiInfractionsPath + '/byDate/' + this.fetchBy.date)
@@ -328,9 +333,33 @@ export default {
             const zeroPad = number => number < 10 ? '0' + number : number
             let currentDate = new Date(),
                 year = currentDate.getFullYear(),
-                month = zeroPad(currentDate.getMonth()),
+                month = zeroPad(currentDate.getMonth() + 1),
                 day = zeroPad(currentDate.getDate())
             return [year, month, day].join('-')
+        },
+        applyFetchByFromQuery() {
+            if (!this.$route.query.fetch) return
+            let query = this.$route.query.fetch.split(',')
+            if (query[0] === 'steamid') {
+                this.fetchBy.selected = 'by Steam ID'
+                this.fetchBy.steamid = query[1]
+                this.handleFetchBySteamID()
+            } else if (query[0] === 'admin') {
+                this.fetchBy.selected = 'by Admin'
+                this.fetchBy.admin = query[1]
+                this.fetchBy.adminFromTo = query[2] === 'to' ? 'to' : 'from'
+                this.handleFetchByAdmin()
+            } else if (query[0] === 'date') {
+                this.fetchBy.selected = 'by Date'
+                this.fetchBy.date = query[1]
+                this.handleFetchByDate()
+            }
+        },
+        setFetchByToQuery(fetchBy) {
+            let newQuery = {...this.$route.query }
+            if (fetchBy) newQuery.fetch = fetchBy
+            else delete newQuery.fetch
+            this.$router.replace({ name: this.$route.name, query: { ...newQuery } })
         }
     },
     computed: {
@@ -362,13 +391,15 @@ export default {
         }
     },
     created() {
-        this.getInfractions()
         this.getAdminList()
         this.fetchBy.date = this.setCurrentDate()
+        this.applyFetchByFromQuery()
+        if (this.fetchBy.selected === 'Recent') this.getInfractions()
     },
     watch: {
         "fetchBy.selected"() {
             if (this.fetchBy.selected === 'Recent') {
+                this.setFetchByToQuery()
                 this.getInfractions()
             }
         }
