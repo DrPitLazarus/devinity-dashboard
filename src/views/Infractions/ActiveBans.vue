@@ -3,8 +3,8 @@
         <hr>
         <h2 class="title is-4">Active Bans</h2>
         <p class="subtitle">
-            Showing the last 200 bans.
-            <span v-if="activeFilters.hideAntiCheat || activeFilters.unban">{{ filteredData.length }} filtered results.</span>
+            Fetched the last 200 bans.
+            <span v-if="activeFilters.hideAntiCheat || activeFilters.unban">Showing {{ filteredData.length }} filtered results.</span>
         </p>
         <loading-box :active="isLoading"/>
         <b-table
@@ -20,7 +20,7 @@
             detail-key="steamid"
             hoverable>
             <template slot-scope="props">
-                <b-table-column field="name" label="Player" width="300" sortable>
+                <b-table-column field="name" label="Player" width="300" class="nowrap" sortable>
                     <router-link 
                         :to="{ name: 'player-summary', 
                             params: { steamId64: steamId32toSteamId64(props.row.steamid) }}"
@@ -34,7 +34,7 @@
                 <b-table-column field="date" label="Date" class="nowrap" sortable>
                     {{ props.row.date }}
                 </b-table-column>
-                <b-table-column field="admin" label="Admin" width="300" sortable>
+                <b-table-column field="admin" label="Admin" width="300" class="nowrap" sortable>
                     <router-link 
                         v-if="isAdminPlayer(props.row.admin)"
                         :to="{ name: 'player-summary', 
@@ -46,21 +46,20 @@
                 </b-table-column>
             </template>
             <template slot="detail" slot-scope="props">
-                <div class="level is-paddingless">
-                    <div class="level-item">
-                        <p>
-                            <strong>Reason: </strong>{{ props.row.reason }}
-                        </p>
-                    </div>
-                    <div class="level-item">
-                        <p>
-                            <a :href="`https://devinity.org/pages/banscontrol/?banid=${props.row.id}`" target="_blank">Bans CP</a>
-                        </p>
-                    </div>
+                <div class="content">
+                    <p>
+                        <strong>Reason: </strong>{{ props.row.reason }}<br>
+                        <a :href="`https://devinity.org/pages/banscontrol/?banid=${props.row.id}`" target="_blank">Bans CP</a>
+                    </p>
                 </div>
             </template>
         </b-table>
         
+        <b-field>
+            <div class="block">
+                <b-switch v-model="activeFilters.hideAntiCheat">Hide bans from Anti-Cheat</b-switch>
+            </div>
+        </b-field>
         <b-field label="Filter by Unban Time:">
             <div class="block">
                 <b-radio 
@@ -71,11 +70,6 @@
                     >
                     {{ option }}
                 </b-radio>
-            </div>
-        </b-field>
-        <b-field>
-            <div class="block">
-                <b-switch v-model="activeFilters.hideAntiCheat">Hide bans from Anti-Cheat</b-switch>
             </div>
         </b-field>
         
