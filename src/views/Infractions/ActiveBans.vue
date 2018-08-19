@@ -7,53 +7,55 @@
             <span v-if="activeFilters.hideAntiCheat || activeFilters.unban">Showing {{ filteredData.length }} filtered results.</span>
         </p>
         <loading-box :active="isLoading"/>
-        <b-table
-            v-if="bans.length"
-            :data="filteredData"
-            :mobile-cards="false"
-            :paginated="true"
-            :per-page="10"
-            :narrowed="true"
-            :default-sort="['date', 'desc']"
-            default-sort-direction="desc"
-            detailed
-            detail-key="steamid"
-            hoverable>
-            <template slot-scope="props">
-                <b-table-column field="name" label="Player" width="300" class="nowrap" sortable>
-                    <router-link 
-                        :to="{ name: 'player-summary', 
-                            params: { steamId64: steamId32toSteamId64(props.row.steamid) }}"
-                        title="View player info.">
-                        {{ props.row.name }}
-                    </router-link>
-                </b-table-column>
-                <b-table-column field="unban" label="Unban in" sortable>
-                    {{ props.row.unbanremaining ? props.row.unbanremaining : 'Permanent' }}
-                </b-table-column>
-                <b-table-column field="date" label="Date" class="nowrap" sortable>
-                    {{ props.row.date }}
-                </b-table-column>
-                <b-table-column field="admin" label="Admin" width="300" class="nowrap" sortable>
-                    <router-link 
-                        v-if="isAdminPlayer(props.row.admin)"
-                        :to="{ name: 'player-summary', 
-                            params: { steamId64: steamId32toSteamId64(getAdminSteamId(props.row.admin)) }}"
-                        title="View player info.">
-                        {{ formatAdminName(props.row.admin) }}
-                    </router-link>
-                    <template v-else>{{ props.row.admin }}</template>
-                </b-table-column>
-            </template>
-            <template slot="detail" slot-scope="props">
-                <div class="content">
-                    <p>
-                        <strong>Reason: </strong>{{ props.row.reason }}<br>
-                        <a :href="`https://devinity.org/pages/banscontrol/?banid=${props.row.id}`" target="_blank">Bans CP</a>
-                    </p>
-                </div>
-            </template>
-        </b-table>
+        <div class="table-spacer">
+            <b-table
+                v-if="bans.length"
+                :data="filteredData"
+                :mobile-cards="false"
+                :paginated="true"
+                :per-page="10"
+                :narrowed="true"
+                :default-sort="['date', 'desc']"
+                default-sort-direction="desc"
+                detailed
+                detail-key="steamid"
+                hoverable>
+                <template slot-scope="props">
+                    <b-table-column field="name" label="Player" width="300" class="nowrap" sortable>
+                        <router-link 
+                            :to="{ name: 'player-summary', 
+                                params: { steamId64: steamId32toSteamId64(props.row.steamid) }}"
+                            title="View player info.">
+                            {{ props.row.name }}
+                        </router-link>
+                    </b-table-column>
+                    <b-table-column field="unban" label="Unban in" sortable>
+                        {{ props.row.unbanremaining ? props.row.unbanremaining : 'Permanent' }}
+                    </b-table-column>
+                    <b-table-column field="date" label="Date" class="nowrap" sortable>
+                        {{ props.row.date }}
+                    </b-table-column>
+                    <b-table-column field="admin" label="Admin" width="300" class="nowrap" sortable>
+                        <router-link 
+                            v-if="isAdminPlayer(props.row.admin)"
+                            :to="{ name: 'player-summary', 
+                                params: { steamId64: steamId32toSteamId64(getAdminSteamId(props.row.admin)) }}"
+                            title="View player info.">
+                            {{ formatAdminName(props.row.admin) }}
+                        </router-link>
+                        <template v-else>{{ props.row.admin }}</template>
+                    </b-table-column>
+                </template>
+                <template slot="detail" slot-scope="props">
+                    <div class="content">
+                        <p>
+                            <strong>Reason: </strong>{{ props.row.reason }}<br>
+                            <a :href="`https://devinity.org/pages/banscontrol/?banid=${props.row.id}`" target="_blank">Bans CP</a>
+                        </p>
+                    </div>
+                </template>
+            </b-table>
+        </div>
         
         <b-field>
             <div class="block">
@@ -135,6 +137,9 @@ export default {
 </script>
 
 <style>
+.active-bans>.table-spacer {
+    min-height: 400px;
+}
 .active-bans .nowrap {
     white-space: nowrap;
 }
