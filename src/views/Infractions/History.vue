@@ -10,43 +10,48 @@
             </template>
         </p>
 
-        <b-dropdown v-model="fetchBy.selected">
-            <button class="button is-info" type="button" slot="trigger">
-                <span>Fetch {{ fetchBy.selected }}</span>
-                <b-icon icon="menu-down"/>
-            </button>
-            <b-dropdown-item value='Recent'>
-                <h3 class="has-text-weight-bold">Recent</h3>
-                <p>Get recent infractions (default)</p>
-            </b-dropdown-item>
-            <b-dropdown-item value='by Steam ID'>
-                <h3 class="has-text-weight-bold">Steam ID</h3>
-                <p>Get all infractions by a perpetator's Steam ID</p>
-            </b-dropdown-item>
-            <b-dropdown-item value='by Admin'>
-                <h3 class="has-text-weight-bold">Admin</h3>
-                <p>Get all infractions from an admin</p>
-            </b-dropdown-item>
-            <b-dropdown-item value='by Date'>
-                <h3 class="has-text-weight-bold">Date</h3>
-                <p>Get all infractions on a date</p>
-            </b-dropdown-item>
-        </b-dropdown>
+        <b-field grouped>
+            <p class="control">
+                <b-dropdown v-model="fetchBy.selected">
+                    <button class="button is-info" type="button" slot="trigger">
+                        <span>Fetch {{ fetchBy.selected }}</span>
+                        <b-icon icon="menu-down"/>
+                    </button>
+                    <b-dropdown-item value='Recent'>
+                        <h3 class="has-text-weight-bold">Recent</h3>
+                        <p>Get recent infractions (default)</p>
+                    </b-dropdown-item>
+                    <b-dropdown-item value='by Steam ID'>
+                        <h3 class="has-text-weight-bold">Steam ID</h3>
+                        <p>Get all infractions by a perpetator's Steam ID</p>
+                    </b-dropdown-item>
+                    <b-dropdown-item value='by Admin'>
+                        <h3 class="has-text-weight-bold">Admin</h3>
+                        <p>Get all infractions from an admin</p>
+                    </b-dropdown-item>
+                    <b-dropdown-item value='by Date'>
+                        <h3 class="has-text-weight-bold">Date</h3>
+                        <p>Get all infractions on a date</p>
+                    </b-dropdown-item>
+                </b-dropdown>
+            </p>
+            <p class="control" v-show="fetchBy.selected !== 'Recent' || isFiltersActive">
+                <button @click="setFetchByToQuery();setFiltersToQuery()" class="button" title="Reset fetchBy and filters.">Reset All</button>
+            </p>
+        </b-field>
 
         <div v-show="fetchBy.selected === 'by Steam ID'" class="box">
             <label class="label">Fetch by perpetrator's Steam ID:</label>
             <b-field addons>
                 <b-input @keypress.enter.native="handleFetchBySteamID()" v-model.trim="fetchBy.steamid" 
-                    expanded placeholder="SteamID/Community ID/URL" spellcheck="off"/>
+                    expanded placeholder="SteamID/Profile ID" spellcheck="off"/>
                 <p class="control">
                     <button @click="handleFetchBySteamID()" class="button is-rounded is-info">Fetch</button>
                 </p>
             </b-field>
             <p>Or choose a player <a @click="searchModalActive = true" tabindex="0" role="button">from a list</a>.</p>
         </div>
-
         <player-search-modal :active="searchModalActive" @steamid="handleSearchByList" @close="searchModalActive = false"/>
-
         <div v-show="fetchBy.selected === 'by Admin'" class="box">
             <b-field label="Fetch by Admin:">
                 <b-select placeholder="Select an Admin..." v-model="fetchBy.admin">
@@ -76,10 +81,9 @@
             </b-field>
             <button @click="handleFetchByAdmin()" class="button is-info">Fetch</button>
         </div>
-
         <div v-show="fetchBy.selected === 'by Date'" class="box">
             <label class="label">Fetch infractions by date:</label>
-            <b-field addons>
+            <b-field>
                 <b-input type="date" v-model="fetchBy.date" icon="calendar-today" rounded/>
                 <p class="control">
                     <button @click="handleFetchByDate()" class="button is-rounded is-info">Fetch</button>
@@ -87,8 +91,8 @@
             </b-field>
         </div>
 
-        <loading-box :active="isLoading"/>
 
+        <loading-box :active="isLoading"/>
         <div v-show="!isLoading && (!infractions.length || !filteredData.length)" class="message">
             <div class="message-body">
                 <span v-if="!infractions.length">There are no results. :(</span>
@@ -118,7 +122,7 @@
                             {{ props.row.perpnick }}
                         </router-link>
                     </b-table-column>
-                    <b-table-column field="unbanremaining" label="Unban in" class="nowrap" sortable>
+                    <b-table-column field="unbanremaining" label="Unban" class="nowrap" sortable>
                         {{ formatUnbanText(props.row) }}
                     </b-table-column>
                     <b-table-column field="date" label="Date" class="nowrap" width="200" sortable>
@@ -201,6 +205,11 @@
                 </b-radio>
             </div>
         </b-field>
+        <label class="label">Filter by Date:</label>
+        <b-field>
+            <b-checkbox v-model="activeFilters.dateEnabled"/>
+            <b-input type="date" v-model="activeFilters.date" icon="calendar-today" rounded/>
+        </b-field>
     </div>
 </template>
 
@@ -225,6 +234,8 @@ export default {
                 unban: ['All', 'Permanent', 'Timed', 'Expired']
             },
             activeFilters: {
+                dateEnabled: false,
+                date: '',
                 hideAntiCheat: false,
                 server: 0,
                 type: 0,
@@ -257,8 +268,8 @@ export default {
             this.adminDropdown = r.data
         },
         async handleFetchByAdmin() {
-            let fetchBy = `admin,${this.fetchBy.admin}`
-            if (this.fetchBy.adminFromTo === 'to') fetchBy += `,to`
+            let fetchBy = `admin.${this.fetchBy.admin}`
+            if (this.fetchBy.adminFromTo === 'to') fetchBy += `.to`
             this.setFetchByToQuery(fetchBy)
             this.isLoading = true
             this.infractions = []
@@ -268,7 +279,7 @@ export default {
             this.isLoading = false
         },
         async handleFetchBySteamID() {
-            this.setFetchByToQuery(`steamid,${this.fetchBy.steamid}`)
+            this.setFetchByToQuery(`steamid.${this.fetchBy.steamid}`)
             this.isLoading = true
             this.infractions = []
             let r = await this.$http(apiInfractionsPath + '/bySteamId/' + this.fetchBy.steamid)
@@ -276,7 +287,7 @@ export default {
             this.isLoading = false
         },
         async handleFetchByDate() {
-            this.setFetchByToQuery(`date,${this.fetchBy.date}`)
+            this.setFetchByToQuery(`date.${this.fetchBy.date}`)
             this.isLoading = true
             this.infractions = []
             let r = await this.$http(apiInfractionsPath + '/byDate/' + this.fetchBy.date)
@@ -329,6 +340,10 @@ export default {
             else if (this.activeFilters.server === 2) return row.cluster === 'battleroyale'
             return false
         },
+        filterByDate(row) {
+            if (this.activeFilters.dateEnabled === false) return true
+            else return row.date.substring(0, 10) === this.activeFilters.date
+        },
         setCurrentDate() {
             const zeroPad = number => number < 10 ? '0' + number : number
             let currentDate = new Date(),
@@ -339,7 +354,7 @@ export default {
         },
         applyFetchByFromQuery() {
             if (!this.$route.query.fetch) return
-            let query = this.$route.query.fetch.split(',')
+            let query = this.$route.query.fetch.split('.')
             if (query[0] === 'steamid') {
                 this.fetchBy.selected = 'by Steam ID'
                 this.fetchBy.steamid = query[1]
@@ -360,6 +375,39 @@ export default {
             if (fetchBy) newQuery.fetch = fetchBy
             else delete newQuery.fetch
             this.$router.replace({ name: this.$route.name, query: { ...newQuery } })
+            if (!fetchBy) this.fetchBy.selected = 'Recent'
+        },
+        applyFiltersFromQuery() {
+            if (!this.$route.query.filters) return
+            let filters = this.$route.query.filters.split('...')
+            filters = filters.map(v => v.split('.'))
+            filters.forEach(v => {
+                if (v[0] === 'unban') {
+                    this.activeFilters.unban = this.filters.unban.findIndex(el => el.toLowerCase() === v[1])
+                } else if (v[0] === 'type') {
+                    this.activeFilters.type = this.filters.type.findIndex(el => el.toLowerCase() === v[1])
+                } else if (v[0] === 'mode') {
+                    this.activeFilters.server = this.filters.server.findIndex(el => 
+                        el.toLowerCase().replace(/[^a-z]/, '') === v[1])
+                } else if (v[0] === 'date') {
+                    this.activeFilters.dateEnabled = true
+                    this.activeFilters.date = v[1]
+                } else if (v[0] === 'hideanticheat') {
+                    this.activeFilters.hideAntiCheat = true
+                } else if (v[0] === 'usecurrentadminnames') {
+                    this.activeFilters.useCurrentAdminNames = true
+                }
+            })
+        },
+        setFiltersToQuery(filters) {
+            let newQuery = { ...this.$route.query }
+            if (filters) newQuery.filters = filters
+            else delete newQuery.filters
+            this.$router.replace({ name: this.$route.name, query: { ...newQuery } })
+            if (!filters) {
+                this.activeFilters.server = this.activeFilters.type = this.activeFilters.unban = 0
+                this.activeFilters.useCurrentAdminNames = this.activeFilters.hideAntiCheat = this.activeFilters.dateEnabled = false
+            }
         }
     },
     computed: {
@@ -370,6 +418,7 @@ export default {
                 && this.filterHideAntiCheat(val)
                 && this.filterByType(val)
                 && this.filterByServer(val)
+                && this.filterByDate(val)
             )
         },
         currentAdminNames() {
@@ -386,14 +435,31 @@ export default {
             }
         },
         isFiltersActive() {
-            let { hideAntiCheat, server, type, unban } = this.activeFilters
-            return hideAntiCheat || server || type || unban
+            let { hideAntiCheat, useCurrentAdminNames, server, type, unban } = this.activeFilters
+            return hideAntiCheat || useCurrentAdminNames || server || type || unban
+        },
+        buildQueryForFilters() {
+            let query = []
+            if (this.activeFilters.unban !== 0) 
+                query.push(`unban.${this.filters.unban[this.activeFilters.unban].toLowerCase()}`)
+            if (this.activeFilters.type !== 0) 
+                query.push(`type.${this.filters.type[this.activeFilters.type].toLowerCase()}`)
+            if (this.activeFilters.server !== 0) 
+                query.push(`server.${this.filters.server[this.activeFilters.server].toLowerCase().replace(' ', '')}`)
+            if (this.activeFilters.dateEnabled === true && this.activeFilters.date.length === 10)
+                query.push(`date.${this.activeFilters.date}`)
+            if (this.activeFilters.useCurrentAdminNames === true) 
+                query.push('usecurrentadminnames')
+            if (this.activeFilters.hideAntiCheat === true) 
+                query.push('hideanticheat')
+            return query.join('...')
         }
     },
     created() {
         this.getAdminList()
-        this.fetchBy.date = this.setCurrentDate()
+        this.fetchBy.date = this.activeFilters.date = this.setCurrentDate()
         this.applyFetchByFromQuery()
+        this.applyFiltersFromQuery()
         if (this.fetchBy.selected === 'Recent') this.getInfractions()
     },
     watch: {
@@ -401,6 +467,12 @@ export default {
             if (this.fetchBy.selected === 'Recent') {
                 this.setFetchByToQuery()
                 this.getInfractions()
+            }
+        },
+        activeFilters: {
+            deep: true,
+            handler() {
+                this.setFiltersToQuery(this.buildQueryForFilters)
             }
         }
     }
@@ -410,7 +482,7 @@ export default {
 
 <style>
 .history>.table-spacer {
-    min-height: 200px;
+    min-height: 400px;
 }
 .history .nowrap {
     white-space: nowrap;
