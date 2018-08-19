@@ -25,7 +25,17 @@
                         </div>
                         <div class="notification is-danger" v-if="currentBan">
                             <p>This player is currently banned from our servers.</p>
-                            <p><q>{{ currentBan.reason }}</q> by {{ currentBan.admin }}. {{ currentBanLength }}.</p>
+                            <p>
+                                <q>{{ currentBan.reason }}</q> by 
+                                <template v-if="isAdminPlayer(currentBan.admin)">
+                                    <router-link 
+                                        :to="{ name: 'player-summary', params: { steamId64: steamId32toSteamId64(getAdminSteamId(currentBan.admin)) } }"
+                                        title="View player info.">
+                                        {{ formatAdminName(currentBan.admin) }}</router-link>. 
+                                </template>
+                                <template v-else>{{ currentBan.admin }}.</template>
+                                {{ currentBanLength }}.
+                            </p>
                         </div>
                         <div class="notification" v-if="isSteamBanned">
                             <p>Steam ban info:</p>
@@ -91,7 +101,7 @@ import Slugify from 'slugify'
 import GamemodeTable from '@/components/GamemodeTable'
 import RouterTabs from '@/components/RouterTabs'
 import unknownAvatar from '@/assets/unknown.png'
-import { apiPlayerPath, formatNumber } from '@/config'
+import { apiPlayerPath, formatNumber, steamId32toSteamId64 } from '@/config'
 
 export default {
     name: 'PlayerSummary',
@@ -137,6 +147,7 @@ export default {
     methods: {
         formatNumber,
         Slugify,
+        steamId32toSteamId64,
         copy(text) {
             this.$copyText(text)
             this.$toast.open({
@@ -180,6 +191,15 @@ export default {
                 tab.to.params = this.$route.params
                 return tab
             })
+        },
+        getAdminSteamId(admin) {
+            return admin.substring(admin.indexOf('(STEAM_0:') + 1, admin.length - 1)
+        },
+        formatAdminName(admin) {
+            return admin.substring(0, admin.indexOf('(STEAM_0:'))
+        },
+        isAdminPlayer(admin) {
+            return !['(Console)', 'Anti-Cheat'].includes(admin)
         }
     },
     computed: {

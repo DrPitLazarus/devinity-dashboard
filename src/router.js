@@ -14,6 +14,9 @@ import PlayerTabBattleRoyaleAchievements from './views/Player/BattleRoyale/Achie
 import PlayerTabBattleRoyaleDeaths from './views/Player/BattleRoyale/Deaths'
 import PlayerTabBattleRoyaleItems from './views/Player/BattleRoyale/Items'
 import PlayerTabBattleRoyaleKills from './views/Player/BattleRoyale/Kills'
+import Infractions from './views/Infractions'
+import InfractionsActiveBans from './views/Infractions/ActiveBans'
+import InfractionsHistory from './views/Infractions/History'
 
 Vue.use(Router)
 Vue.use(VueMeta)
@@ -91,6 +94,23 @@ export default new Router({
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      path: '/infractions',
+      name: 'infractions',
+      component: Infractions,
+      children: [
+        {
+          path: 'active-bans',
+          name: 'infractions-activebans',
+          component: InfractionsActiveBans
+        },
+        {
+          path: 'history',
+          name: 'infractions-history',
+          component: InfractionsHistory
         }
       ]
     }
