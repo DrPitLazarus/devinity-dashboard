@@ -22,6 +22,9 @@
                             :href="`https://steamcommunity.com/profiles/${steam.steamid}`" title="Open Steam profile.">Steam</a>
                             <a class="button" v-if="general.forumid" 
                             :href="`https://devinity.org/members/${general.forumid}`" title="Open Devinity forum profile.">Forum</a>
+                            <router-link v-if="general.numberOfInfractions > 0" :to="{ name: 'infractions-history', query: { fetch: `steamid.${general.steamid32}` }}" class="button"
+                                title="Open infractions history of this player.">
+                                {{ general.numberOfInfractions }} Infractions</router-link>
                         </div>
                         <div class="notification is-danger" v-if="currentBan">
                             <p>This player is currently banned from our servers.</p>
