@@ -446,8 +446,8 @@ export default {
             }
         },
         isFiltersActive() {
-            let { hideAntiCheat, useCurrentAdminNames, reason, server, type, unban } = this.activeFilters
-            return hideAntiCheat || useCurrentAdminNames || reason || server || type || unban
+            let { hideAntiCheat, useCurrentAdminNames, date, reason, server, type, unban } = this.activeFilters
+            return hideAntiCheat || useCurrentAdminNames || date || reason || server || type || unban
         },
         buildQueryForFilters() {
             let query = []
