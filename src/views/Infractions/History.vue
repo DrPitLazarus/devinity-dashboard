@@ -210,6 +210,9 @@
             <b-checkbox v-model="activeFilters.dateEnabled"/>
             <b-input type="date" v-model="activeFilters.date" icon="calendar-today" rounded/>
         </b-field>
+        <b-field label="Filter by Reason:">
+            <b-input type="text" v-model.trim="activeFilters.reason" rounded/>
+        </b-field>
     </div>
 </template>
 
@@ -237,6 +240,7 @@ export default {
                 dateEnabled: false,
                 date: '',
                 hideAntiCheat: false,
+                reason: '',
                 server: 0,
                 type: 0,
                 unban: 0,
@@ -344,6 +348,10 @@ export default {
             if (this.activeFilters.dateEnabled === false) return true
             else return row.date.substring(0, 10) === this.activeFilters.date
         },
+        filterByReason(row) {
+            if (this.activeFilters.reason === '') return true
+            else return row.reason.toLowerCase().includes(this.activeFilters.reason.toLowerCase())
+        },
         setCurrentDate() {
             const zeroPad = number => number < 10 ? '0' + number : number
             let currentDate = new Date(),
@@ -392,6 +400,8 @@ export default {
                 } else if (v[0] === 'date') {
                     this.activeFilters.dateEnabled = true
                     this.activeFilters.date = v[1]
+                } else if (v[0] === 'reason') {
+                    this.activeFilters.reason = v[1]
                 } else if (v[0] === 'hideanticheat') {
                     this.activeFilters.hideAntiCheat = true
                 } else if (v[0] === 'usecurrentadminnames') {
@@ -419,6 +429,7 @@ export default {
                 && this.filterByType(val)
                 && this.filterByServer(val)
                 && this.filterByDate(val)
+                && this.filterByReason(val)
             )
         },
         currentAdminNames() {
@@ -435,8 +446,8 @@ export default {
             }
         },
         isFiltersActive() {
-            let { hideAntiCheat, useCurrentAdminNames, server, type, unban } = this.activeFilters
-            return hideAntiCheat || useCurrentAdminNames || server || type || unban
+            let { hideAntiCheat, useCurrentAdminNames, reason, server, type, unban } = this.activeFilters
+            return hideAntiCheat || useCurrentAdminNames || reason || server || type || unban
         },
         buildQueryForFilters() {
             let query = []
@@ -448,6 +459,8 @@ export default {
                 query.push(`server.${this.filters.server[this.activeFilters.server].toLowerCase().replace(' ', '')}`)
             if (this.activeFilters.dateEnabled === true && this.activeFilters.date.length === 10)
                 query.push(`date.${this.activeFilters.date}`)
+            if (this.activeFilters.reason !== '')
+                query.push(`reason.${this.activeFilters.reason.toLowerCase()}`)
             if (this.activeFilters.useCurrentAdminNames === true) 
                 query.push('usecurrentadminnames')
             if (this.activeFilters.hideAntiCheat === true) 
