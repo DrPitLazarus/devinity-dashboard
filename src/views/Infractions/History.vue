@@ -417,6 +417,7 @@ export default {
             if (!filters) {
                 this.activeFilters.server = this.activeFilters.type = this.activeFilters.unban = 0
                 this.activeFilters.useCurrentAdminNames = this.activeFilters.hideAntiCheat = this.activeFilters.dateEnabled = false
+                this.activeFilters.reason = ''
             }
         }
     },
